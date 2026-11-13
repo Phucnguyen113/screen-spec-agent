@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// One-command installer: installs the kit into every harness found on PATH
-// (Claude Code, Codex, OpenCode). Zero dependencies, Node >= 22.
+// Installer: asks before installing the kit into each harness found on PATH
+// (Claude Code, Codex, OpenCode). Never installs silently. Zero dependencies, Node >= 22.
 import { accessSync, constants, existsSync, realpathSync, readFileSync, mkdirSync, writeFileSync, statSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { delimiter, join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { createInterface } from 'node:readline/promises';
 
 const HARNESSES = ['claude', 'codex', 'opencode'];
 const UPSTREAM = 'superpowers';
@@ -29,23 +30,35 @@ export function defaultConfigHome(env = process.env) {
   return env.XDG_CONFIG_HOME || join(env.HOME || homedir(), '.config');
 }
 
-export function planInstall(found, { repoUrl, name, configHome = defaultConfigHome() }) {
+export function planInstall(found, { repoUrl, name, configHome = defaultConfigHome(), scope = 'user', only = null, cwd = process.cwd() }) {
+  const project = scope === 'project';
+  const want = (h) => found[h] && (!only || only.includes(h));
   const plan = [];
-  if (found.claude) {
+  if (want('claude')) {
     // `--marketplace <source>` adds the marketplace first when it is not configured yet.
-    plan.push({ harness: 'claude', command: ['claude', 'plugin', 'install', name, '--marketplace', repoUrl] });
+    const command = ['claude', 'plugin', 'install', name, '--marketplace', repoUrl];
+    if (project) plan.push({ harness: 'claude', command: [...command, '--scope', 'project'], cwd });
+    else plan.push({ harness: 'claude', command });
   }
-  if (found.codex) {
-    // The marketplace and the plugin both carry the distribution name.
-    plan.push({ harness: 'codex', command: ['codex', 'plugin', 'marketplace', 'add', repoUrl] });
-    plan.push({ harness: 'codex', command: ['codex', 'plugin', 'add', `${name}@${name}`] });
+  if (want('codex')) {
+    if (project) {
+      plan.push({
+        harness: 'codex',
+        command: null,
+        skipped: 'Codex has no project scope; skipped (use --scope user to install globally)',
+      });
+    } else {
+      // The marketplace and the plugin both carry the distribution name.
+      plan.push({ harness: 'codex', command: ['codex', 'plugin', 'marketplace', 'add', repoUrl] });
+      plan.push({ harness: 'codex', command: ['codex', 'plugin', 'add', `${name}@${name}`] });
+    }
   }
-  if (found.opencode) {
+  if (want('opencode')) {
     plan.push({
       harness: 'opencode',
       command: null,
       configEdit: {
-        file: join(configHome, 'opencode', 'opencode.json'),
+        file: project ? join(cwd, 'opencode.json') : join(configHome, 'opencode', 'opencode.json'),
         key: 'plugin',
         value: `${name}@git+${repoUrl.replace(/\.git$/, '')}.git`,
       },
@@ -111,72 +124,143 @@ export function mergeOpencodePlugin(file, key, value) {
   return { status: 'added' };
 }
 
-function parseArgs(argv, defaultRepo) {
-  const opts = { dryRun: false, repo: defaultRepo };
+const USAGE = 'Usage: install.mjs [--yes] [--only claude,codex,opencode] [--scope user|project] [--dry-run] [--repo <git url>]';
+
+export function parseArgs(argv, defaultRepo) {
+  const opts = { dryRun: false, repo: defaultRepo, only: null, scope: 'user', yes: false };
+  const value = (i, flag, what) => {
+    const v = argv[i];
+    if (!v || v.startsWith('--')) throw new Error(`${flag} needs ${what}`);
+    return v;
+  };
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--dry-run') opts.dryRun = true;
-    else if (argv[i] === '--repo') {
-      opts.repo = argv[++i];
-      if (!opts.repo) throw new Error('--repo needs a git URL');
-    } else throw new Error(`unknown argument: ${argv[i]}`);
+    const a = argv[i];
+    if (a === '--dry-run') opts.dryRun = true;
+    else if (a === '--yes' || a === '-y') opts.yes = true;
+    else if (a === '--repo') opts.repo = value(++i, '--repo', 'a git URL');
+    else if (a === '--scope') {
+      opts.scope = value(++i, '--scope', 'user or project');
+      if (!['user', 'project'].includes(opts.scope)) throw new Error(`--scope must be user or project, got: ${opts.scope}`);
+    } else if (a === '--only') {
+      opts.only = value(++i, '--only', 'a comma-separated list of harnesses').split(',').map((x) => x.trim()).filter(Boolean);
+      const bad = opts.only.filter((h) => !HARNESSES.includes(h));
+      if (bad.length || opts.only.length === 0) throw new Error(`unknown harness in --only: ${bad.join(', ') || '(empty)'} (choose from ${HARNESSES.join(', ')})`);
+    } else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
 }
 
-export function main(argv, env = process.env) {
+async function readlinePrompt(question) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await rl.question(question);
+  } finally {
+    rl.close();
+  }
+}
+
+const realExec = (cmd, args, { cwd } = {}) => spawnSync(cmd, args, { stdio: 'inherit', cwd }).status;
+
+export async function main(argv, env = process.env, deps = {}) {
+  const log = deps.log ?? ((m) => console.log(m));
+  const error = deps.error ?? ((m) => console.error(m));
+  const cwd = deps.cwd ?? process.cwd();
+  const exec = deps.exec ?? realExec;
+  const prompt = deps.prompt ?? readlinePrompt;
+  const interactive = deps.isTTY ?? Boolean(process.stdin.isTTY);
   const config = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'kit.config.json'), 'utf8'));
   let opts;
   try {
     opts = parseArgs(argv, config.distRepo);
   } catch (e) {
-    console.error(`${e.message}\nUsage: install.mjs [--dry-run] [--repo <git url>]`);
+    error(`${e.message}\n${USAGE}`);
     return 2;
   }
   const found = detectHarnesses(env.PATH);
-  const plan = planInstall(found, { repoUrl: opts.repo, name: config.name, configHome: defaultConfigHome(env) });
-  if (plan.length === 0) {
-    console.error('No supported harness found on PATH (looked for: claude, codex, opencode).');
+  const configHome = defaultConfigHome(env);
+  const plan = planInstall(found, { repoUrl: opts.repo, name: config.name, configHome, scope: opts.scope, only: opts.only, cwd });
+  const targets = HARNESSES.filter((h) => plan.some((s) => s.harness === h));
+  if (targets.length === 0) {
+    error(`No supported harness found on PATH${opts.only ? ` among --only ${opts.only.join(',')}` : ''} (looked for: ${(opts.only ?? HARNESSES).join(', ')}).`);
     return 1;
   }
   const upstream = detectUpstreamSuperpowers(found, {
-    opencodeConfigFile: join(defaultConfigHome(env), 'opencode', 'opencode.json'),
+    run: deps.listRun ?? realRun,
+    opencodeConfigFile: join(configHome, 'opencode', 'opencode.json'),
   });
-  let failed = false;
-  for (const harness of HARNESSES.filter((h) => found[h])) {
-    console.log(`== ${harness}${opts.dryRun ? ' (dry run)' : ''}`);
-    for (const step of plan.filter((s) => s.harness === harness)) {
-      if (step.command) {
-        console.log(`$ ${step.command.join(' ')}`);
-        if (!opts.dryRun) {
-          const r = spawnSync(step.command[0], step.command.slice(1), { stdio: 'inherit' });
-          if (r.status !== 0) {
-            failed = true;
-            console.error(`${harness}: command failed (exit ${r.status ?? 'signal'}); skipping the rest of this harness.`);
-            break;
-          }
-        }
-      } else {
-        const { file, key, value } = step.configEdit;
-        console.log(`add "${value}" to "${key}" in ${file}`);
-        if (!opts.dryRun) {
-          const r = mergeOpencodePlugin(file, key, value);
-          if (r.status === 'added') console.log('done');
-          else if (r.status === 'exists') console.log('already present');
-          else console.log(`could not edit ${file} safely (not plain JSON). Add this yourself:\n${r.snippet}`);
-        }
-      }
+
+  // Up-front notice.
+  log(`Screen-spec agent kit "${config.name}" (scope: ${opts.scope}) would be installed into:`);
+  for (const h of targets) {
+    const steps = plan.filter((s) => s.harness === h);
+    log(`  ${h}:`);
+    for (const s of steps) {
+      if (s.skipped) log(`    skip: ${s.skipped}`);
+      else if (s.command) log(`    $ ${s.command.join(' ')}${s.cwd ? `   (in ${s.cwd})` : ''}`);
+      else log(`    add "${s.configEdit.value}" to "${s.configEdit.key}" in ${s.configEdit.file}`);
     }
-    if (upstream.includes(harness)) {
-      console.log(
-        `warning: upstream superpowers is also installed in ${harness}; both will register the same skills. ` +
-          `Uninstall it with: ${upstreamUninstallHint(harness)}`,
-      );
+    if (upstream.includes(h)) {
+      log(`    upstream superpowers is installed in ${h}. Uninstall it yourself with: ${upstreamUninstallHint(h)}`);
     }
   }
-  console.log(`\n${NEXT_STEP}`);
+  log('This kit REPLACES upstream superpowers: it ships skills with the same names, so running both duplicates them.');
+  log('Nothing is uninstalled automatically.');
+  if (opts.scope === 'project' && !existsSync(join(cwd, '.git'))) {
+    log(`warning: ${cwd} is not a git repository root (no .git). Project scope will install here.`);
+  }
+
+  if (opts.dryRun) {
+    log('\n(dry run: nothing was installed)');
+    log(`\n${NEXT_STEP}`);
+    return 0;
+  }
+  if (!opts.yes && !interactive) {
+    error('\nNot a terminal and --yes not given: installing nothing.\nre-run with --yes to install non-interactively.');
+    return 1;
+  }
+
+  let failed = false;
+  let installedAny = false;
+  for (const harness of targets) {
+    const steps = plan.filter((s) => s.harness === harness);
+    if (steps.every((s) => s.skipped)) {
+      log(`== ${harness}: ${steps[0].skipped}`);
+      continue;
+    }
+    if (!opts.yes) {
+      const ans = String(await prompt(`Install into ${harness} (${opts.scope})? [y/N] `)).trim().toLowerCase();
+      if (ans !== 'y' && ans !== 'yes') {
+        log(`== ${harness}: skipped`);
+        continue;
+      }
+    }
+    log(`== ${harness}`);
+    for (const step of steps) {
+      if (step.command) {
+        log(`$ ${step.command.join(' ')}`);
+        const status = exec(step.command[0], step.command.slice(1), { cwd: step.cwd });
+        if (status !== 0) {
+          failed = true;
+          error(`${harness}: command failed (exit ${status ?? 'signal'}); skipping the rest of this harness.`);
+          break;
+        }
+        installedAny = true;
+      } else {
+        const { file, key, value } = step.configEdit;
+        log(`add "${value}" to "${key}" in ${file}`);
+        const r = mergeOpencodePlugin(file, key, value);
+        if (r.status === 'added') {
+          log('done');
+          installedAny = true;
+        } else if (r.status === 'exists') log('already present');
+        else log(`could not edit ${file} safely (not plain JSON). Add this yourself:\n${r.snippet}`);
+      }
+    }
+  }
+  if (installedAny || !failed) log(`\n${NEXT_STEP}`);
   return failed ? 1 : 0;
 }
 
 if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }

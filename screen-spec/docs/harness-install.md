@@ -13,7 +13,7 @@ The dist build names both the marketplace and the plugin `<name>`.
 
 | Harness | Install | List installed (read-only) |
 | --- | --- | --- |
-| Claude Code | `claude plugin install <name> --marketplace <repo>` (adds the marketplace first if missing; user scope by default) | `claude plugin list --json` (array of `{ id: "plugin@marketplace", ... }`) |
+| Claude Code | `claude plugin install <name> --marketplace <repo>` (adds the marketplace first if missing; user scope by default, `--scope project` adds `--scope project`) | `claude plugin list --json` (array of `{ id: "plugin@marketplace", ... }`) |
 | Codex | `codex plugin marketplace add <repo>` then `codex plugin add <name>@<name>` | `codex plugin list --json` (`{ installed: [{ name, pluginId, ... }] }`) |
 | OpenCode | no CLI install for git specs: merge `"<name>@git+<repo>.git"` into the `plugin` array of `~/.config/opencode/opencode.json` (honours `XDG_CONFIG_HOME`) | read that config file |
 
@@ -22,6 +22,31 @@ writes `plugin` (V1 form, the installed 1.18.27 uses it). `opencode plugin <modu
 exists but takes an npm module name, so the installer edits the config directly.
 If the file is not plain JSON (for example JSONC with comments) the installer
 prints the snippet instead of editing it.
+
+## Scope and prompts
+
+The installer never installs silently. It prints what goes where and that the kit
+replaces upstream superpowers (same skill names), then asks `Install into <harness>
+(<scope>)? [y/N]` per harness. Without a TTY it installs nothing and exits 1 unless
+`--yes` is given. `--only claude,codex,opencode` limits harnesses, `--scope user|project`
+picks the scope (default `user`).
+
+| Harness | `--scope user` | `--scope project` (run in the repo root) |
+| --- | --- | --- |
+| Claude Code | `claude plugin install <name> --marketplace <repo>` | same with `--scope project`, run in the current directory |
+| Codex | `codex plugin marketplace add <repo>`, `codex plugin add <name>@<name>` | skipped: `codex plugin add` has no scope option, Codex is global only |
+| OpenCode | entry in `~/.config/opencode/opencode.json` | entry in `./opencode.json` in the current directory |
+
+Project scope warns when the current directory has no `.git`.
+
+## Uninstall
+
+- Claude Code: `claude plugin uninstall <name>@<name>` and `claude plugin marketplace remove <name>`
+  (for the default name: `claude plugin uninstall screen-spec-agent@screen-spec-agent`,
+  `claude plugin marketplace remove screen-spec-agent`).
+- Codex: `codex plugin remove <name>@<name>` and `codex plugin marketplace remove <name>`
+  (`codex plugin remove screen-spec-agent@screen-spec-agent`, `codex plugin marketplace remove screen-spec-agent`).
+- OpenCode: remove the `<name>@git+<repo>.git` entry from the `plugin` list of the config file you edited.
 
 Upstream removal hints printed on a conflict (never run automatically):
 `claude plugin uninstall superpowers`, `codex plugin remove superpowers`, and for

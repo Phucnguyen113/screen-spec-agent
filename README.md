@@ -12,7 +12,14 @@ This kit is one part of Screen-spec, next to the web app, the Figma plugin and t
 npx github:Phucnguyen113/screen-spec-agent
 ```
 
-https://github.com/Phucnguyen113/screen-spec-agent is the distribution repo. Its name comes from `distRepo` in `screen-spec/kit.config.json`, which the release build fills in here. The installer adds the kit to every supported harness found on your PATH. It does not write any MCP configuration.
+https://github.com/Phucnguyen113/screen-spec-agent is the distribution repo. Its name comes from `distRepo` in `screen-spec/kit.config.json`, which the release build fills in here. The installer never installs silently. It prints what will be installed where and asks `Install into <harness> (<scope>)? [y/N]` for each supported harness found on your PATH (default No). Without a terminal it installs nothing unless you pass `--yes`. It does not write any MCP configuration.
+
+- `--yes`: skip the prompts (the notice is still printed).
+- `--only claude,codex,opencode`: only these harnesses.
+- `--scope user|project`: default `user`. `project` installs into the current repo (Claude Code and `./opencode.json`); Codex has no project scope and is skipped.
+- `--dry-run`: print the plan only.
+
+This kit replaces upstream superpowers: it ships skills with the same names, so running both duplicates them. If the installer detects upstream, it prints the uninstall command and leaves it alone. To remove the kit, see [`screen-spec/docs/harness-install.md`](screen-spec/docs/harness-install.md).
 
 The install commands it runs come from each harness's `--help` output and docs. They have not been verified by a real install. See [`screen-spec/docs/harness-install.md`](screen-spec/docs/harness-install.md) for the exact commands per harness.
 
