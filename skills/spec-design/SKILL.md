@@ -9,7 +9,7 @@ description: Use when a screen in a repository with a .screen-spec.json file has
 
 Make a screen's design without a designer or Figma: write it as one HTML document, let the developer preview it, push it to Screen-spec only after the dev approves, then anchor the screen's spec items to the elements the server extracted. Operation names and write rules come from **screen-spec-agent:spec-driver**; this skill does not repeat them. The operations used here are `createDesign`, `listDesignCandidates` and `anchorItem` (server tools `create_design_from_html`, `list_design_candidates`, `anchor_spec_item`), plus `readScreenSpec` and `screenState`. Attribute reference and limits: `references/html-design-rules.md`.
 
-Called by brainstorming when a screen's mockup is approved, and by **screen-spec-agent:spec-grounding** when a screen has no design. The developer decides whether to use it.
+Called by brainstorming when a screen's mockup is approved or the developer picks the design path in its UI decision, by a plan's design task, and by **screen-spec-agent:spec-grounding** when a screen has no design. The developer decides whether to use it. The design you push is the target the UI code is built to, so make it a real design, not a wireframe.
 
 ## 1. Preconditions
 
@@ -30,6 +30,16 @@ One full document per screen (starts with `<!DOCTYPE html>`), following `referen
 - Items with `specScope: "screen"` are business logic, not on the design; do not annotate them.
 - Stay inside the limits: at most 5MB, 20 sections, 8,000 CSS px per section, static HTML only (no fetch, no iframe), CDNs only from the allowlist.
 - Use realistic content from the spec (labels, messages, sample data), in the project's source language.
+
+### Visual quality
+
+- One visual system for the whole project: colors, type scale, spacing, radius, and the look of buttons, inputs, tables, cards, badges and alerts, as CSS custom properties and classes in one `<style>` block. Take it from the design doc. None yet → propose one with the first screen, and once the developer approves it, write it into the design doc (the system, not screen content) so later screens and the UI code reuse it.
+- Every screen inlines that same block, so screens look like one product. Change it only with the developer's approval, and then in the design doc too.
+- Design each state the spec implies, not only the happy path: empty lists, validation errors next to their fields, a disabled or closed state, the message after an action.
+- Real layout: navigation and page header, clear hierarchy, aligned grids, sensible widths for the platform. Realistic data, not lorem ipsum.
+- Accessible basics: readable contrast, visible labels on inputs (not placeholder-only), focus styles.
+
+Several screens at once (a plan's design task) → do the first screen alone to settle the visual system, then the rest. The developer may approve them one by one or together; push each only after its own yes.
 
 ## 3. Preview
 
@@ -67,6 +77,8 @@ Anchors made by the agent are always `suggested`; nothing is confirmed until a p
 - how many items were anchored, and which stayed unanchored and why,
 - to confirm the `suggested` anchors on the Screen-spec web app.
 
+Keep the approved HTML working copy for the rest of the session: the UI tasks build to it (with the design image from `readScreenSpec`) and can reuse its markup and styles.
+
 ## Red flags
 
 | Thought | Reality |
@@ -77,3 +89,6 @@ Anchors made by the agent are always `suggested`; nothing is confirmed until a p
 | "No candidate matches, I'll draw the bbox myself" | Leave it unanchored and tell the developer. |
 | "Third refusal, one more small fix" | Two retries, then stop and show the reasons. |
 | "The anchors are right, I'll call them confirmed" | Agent anchors are `suggested`; a person confirms them. |
+| "A wireframe is enough, the code will look better" | The code is built to the design. Make the design the UI you want. |
+| "This screen looks better with its own colors" | One visual system for every screen; changes go through the developer and the design doc. |
+| "They said only code matters, so skip the design" | The UI decision is theirs. Ask it; do not infer it. |

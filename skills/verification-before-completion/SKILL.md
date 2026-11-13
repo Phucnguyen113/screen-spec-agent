@@ -39,6 +39,7 @@ Skip any step = lying, not verifying
 In a repository with .screen-spec.json:
 - Before claiming the whole work complete (an ad-hoc change outside a plan, or the end of a branch or plan), run screen-spec-agent:spec-audit on the screens it touched, and state its result (or why it was skipped) with your claim.
 - Skip it for per-task claims inside a running plan (executing-plans, subagent-driven-development): the audit runs once, via requesting-code-review or finishing-a-development-branch.
+- Spec writes still pending because the server failed (spec-driver's "Failures mid-session") → list them with your claim. Never call the spec side done while any are pending.
 - The audit is advisory: it never blocks the claim, and its findings go to your human partner through screen-spec-agent:spec-drift-guard. Never decide them yourself.
 <!-- screen-spec:end -->
 ## Common Failures

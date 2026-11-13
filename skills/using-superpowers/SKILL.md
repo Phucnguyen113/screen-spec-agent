@@ -72,6 +72,7 @@ If the repository has no .screen-spec.json, ignore this block entirely and do no
 If it has one, specs live in Screen-spec:
 - Before brainstorming or planning work on a screen → screen-spec-agent:spec-grounding.
 - Before changing how a screen behaves → screen-spec-agent:spec-drift-guard.
+- New or changed screens with no design → ask the UI decision (brainstorming), then screen-spec-agent:spec-design before UI code.
 - Before declaring work done → screen-spec-agent:spec-audit.
 - Screen decisions go to Screen-spec, not to design docs.
 <!-- screen-spec:end -->

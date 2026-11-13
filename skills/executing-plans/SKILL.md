@@ -210,6 +210,9 @@ is fine; BASE is what the review range is cut from, never `HEAD~1`.
 In a repository with .screen-spec.json:
 - Before a step changes how a screen behaves, run screen-spec-agent:spec-drift-guard for that change, before editing code.
 - A drift it finds is a stop besides the four above: show its block to your human partner and wait for their choice. Never rule on it yourself; ledger their answer, not a Ruling.
+- Design task → run screen-spec-agent:spec-design. Waiting for your human partner to approve the HTML is a stop besides the four above.
+- Before coding a screen's UI, read its design (`readScreenSpec` gives the design image; use the approved HTML too if you have it) and build to it: layout, fields, labels, order, and every state it shows. A difference you cannot avoid goes to spec-drift-guard like any drift.
+- A spec read or write that fails: follow spec-driver's "Failures mid-session". Never move confirmed spec content into a local file on your own.
 <!-- screen-spec:end -->
 ### 3. The completion contract
 

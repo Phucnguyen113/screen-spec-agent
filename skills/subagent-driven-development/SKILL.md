@@ -240,6 +240,8 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 In a repository with .screen-spec.json:
 - When a task changes how a screen behaves, add to its dispatch: run screen-spec-agent:spec-drift-guard before editing code for that change; on a drift, stop and return the drift block unanswered with status NEEDS_CONTEXT.
 - An implementer that returns a drift block: relay the block verbatim to your human partner, wait for their choice, and pass their answer back to that implementer. Never answer the block yourself or rule on it; it is a stop besides the four above.
+- Design tasks run in the main session with screen-spec-agent:spec-design, never in a subagent: they need your human partner's approval.
+- A task that codes a screen's UI: add to its dispatch the screen code, the design labels to build, the design doc's visual system, and "read the design with `readScreenSpec` before writing UI; match layout, fields, labels, order and states; a difference you cannot avoid is a drift".
 <!-- screen-spec:end -->
 ### 2. Handle the report
 

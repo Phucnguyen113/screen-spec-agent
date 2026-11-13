@@ -45,7 +45,11 @@ Thin = the spec says nothing about the behavior this task touches. Interview the
 
 ## 7. Screen has no design
 
-A design can come from `figma`, `html` or `image`; any of them counts. A screen with none → offer **screen-spec-agent:spec-design** (only if spec-driver's feature detection found `createDesign`). The developer decides.
+A design can come from `figma`, `html` or `image`; any of them counts. Check this for every screen in scope, including screens you create with `create_screen` during the session, not only the ones that existed when you grounded.
+
+A screen with none (and spec-driver's feature detection found `createDesign`):
+- The UI decision (brainstorming) is already made → follow it: design path → **screen-spec-agent:spec-design** before its UI is coded; code-first → nothing to do.
+- Not made yet → ask it now, as brainstorming words it, before any UI code for that screen. The developer decides; record the answer in the design doc (or the plan, outside brainstorming).
 
 ## Red flags
 

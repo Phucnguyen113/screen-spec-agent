@@ -120,7 +120,12 @@ export async function buildDist(srcDir, outDir, config, { allowPlaceholder = fal
     brand(o);
   };
 
-  await patchJson(join(out, '.claude-plugin/plugin.json'), rename);
+  // No version in the Claude manifests: every build carries the upstream version, so Claude Code
+  // would treat a new build as already installed. Without one it versions the plugin by git commit.
+  await patchJson(join(out, '.claude-plugin/plugin.json'), (j) => {
+    rename(j);
+    delete j.version;
+  });
   await patchJson(join(out, '.codex-plugin/plugin.json'), (j) => {
     rename(j);
     const i = j.interface ?? (j.interface = {});
@@ -139,6 +144,7 @@ export async function buildDist(srcDir, outDir, config, { allowPlaceholder = fal
       for (const p of j.plugins) {
         p.description ??= '';
         rename(p);
+        if (m.startsWith('.claude-plugin')) delete p.version;
       }
     });
   }

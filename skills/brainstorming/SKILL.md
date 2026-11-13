@@ -53,6 +53,8 @@ already decided.
 In a repository with .screen-spec.json:
 - Before you ask anything about a screen, run screen-spec-agent:spec-grounding for it. Never ask what its spec already answers.
 - Screen decisions (fields, rules, states, messages, behavior) go to Screen-spec through spec-grounding, not into the design doc. The design doc keeps only the parts that belong to no screen, and links to the screens it touches.
+- **UI decision.** When the work adds screens or changes what a screen looks like, ask once, in its own message: "Should the UI follow a design on Screen-spec (I draw each screen as HTML with screen-spec-agent:spec-design; you approve it before any UI code), or go code-first with no design?" Recommend the design path. "Only code is delivered", "the tech doesn't matter" or a vague scope do not answer it: that code still has a UI. Record the answer in the design doc. Skip the question when every screen in scope already has a design, or spec-driver found no `createDesign` (say so instead).
+- Design path: the visual system (palette, type, spacing, components) belongs to no screen, so it goes in the design doc. Every screen in scope that has no design goes through spec-design once its spec items are written, before its UI is coded, including screens created later in the plan.
 - When your human partner approves a mockup of a screen, offer screen-spec-agent:spec-design to push it as that screen's design (if spec-driver's feature detection found `createDesign`). They decide.
 <!-- screen-spec:end -->
 ## Your First Message

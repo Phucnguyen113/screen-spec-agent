@@ -141,7 +141,8 @@ git commit -m "feat: add specific feature"
 In a repository with .screen-spec.json:
 - Read each screen in scope live with screen-spec-agent:spec-driver's `readScreenSpec` (it includes the acceptance criteria), after screen-spec-agent:spec-grounding if this session has not grounded it yet.
 - Every task that touches a screen names the screen (code and name) and the spec items and AC it implements, next to its Files. A task that must change behavior the spec states otherwise says so, so the executor runs screen-spec-agent:spec-drift-guard on it.
-- Self-review adds one check: every spec item and AC of the screens in scope is implemented by a task or marked out of scope.
+- Design path chosen in brainstorming (the design doc's UI decision): for every screen in scope without a design, a design task (screen-spec-agent:spec-design) comes after its spec is written and before any task that codes its UI. A UI task names the design it builds (screen code and state labels) and reuses the design doc's visual system. Mark design tasks "main session": they need your human partner's approval, so a subagent cannot run them.
+- Self-review adds two checks: every spec item and AC of the screens in scope is implemented by a task or marked out of scope; and on the design path, every screen in scope has a design task or already has a design.
 <!-- screen-spec:end -->
 ## What a Step Contains
 

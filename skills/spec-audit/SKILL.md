@@ -40,6 +40,7 @@ Follow the approach of the server's `audit_spec` prompt in its codebase mode, ad
 - `readFlows` for the flows the screen belongs to, so you judge the screen in its journey, not on its own.
 - `readSharedSpec` for the shared specs its items link to. A shared rule implemented differently here than the spec says is a finding.
 - Read the implementing files, not only the diff: the question is what the screen does now.
+- The screen has a design → compare the UI the code renders with it too: the fields, labels, order, actions and states the design shows. Read the design image with `readScreenSpec`; a rendered page or a screenshot helps when you can get one. A visible difference (missing field, other label, missing state, different structure) is a finding, "differs from design". Pixel-level styling is not.
 - Pair each spec item with the code that implements it and label the pairing `certain`, `probable` or `could not pair`. Never present a probable pairing as a fact.
 
 Sort what you find:
@@ -47,6 +48,7 @@ Sort what you find:
 - **Spec item not implemented** → finding.
 - **Implemented differently** (required-ness, limits, wording, states, permissions, behavior) → finding. Say what differs.
 - **Shared rule applied inconsistently** → finding.
+- **UI differs from the design** → finding. Say which design (label) and what differs.
 - **Code does something the spec says nothing about** → not drift; list it as a spec gap. The developer may record it with spec-grounding.
 
 ## 4. Skip drift that was already accepted
