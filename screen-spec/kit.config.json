@@ -1,0 +1,9 @@
+{
+  "name": "screen-spec-agent",
+  "displayName": "Screen-spec Agent",
+  "distRepo": "https://github.com/Phucnguyen113/screen-spec-agent",
+  "upstream": {
+    "repo": "https://github.com/obra/superpowers",
+    "tag": "v7.0.2"
+  }
+}

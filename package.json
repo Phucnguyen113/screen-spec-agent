@@ -1,0 +1,31 @@
+{
+  "name": "screen-spec-agent",
+  "version": "7.0.2",
+  "description": "Superpowers skills and runtime bootstrap for coding agents. Powered by superpowers (github.com/obra/superpowers).",
+  "type": "module",
+  "main": ".opencode/plugins/superpowers.js",
+  "keywords": [
+    "pi-package",
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "workflow"
+  ],
+  "pi": {
+    "extensions": [
+      "./.pi/extensions/superpowers.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "bin": {
+    "screen-spec-agent": "screen-spec/bin/install.mjs"
+  },
+  "author": {
+    "name": "Screen-spec"
+  },
+  "homepage": "https://github.com/Phucnguyen113/screen-spec-agent",
+  "repository": "https://github.com/Phucnguyen113/screen-spec-agent"
+}

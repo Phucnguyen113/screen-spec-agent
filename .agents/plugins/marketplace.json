@@ -1,0 +1,26 @@
+{
+  "name": "screen-spec-agent",
+  "interface": {
+    "displayName": "Screen-spec Agent"
+  },
+  "plugins": [
+    {
+      "name": "screen-spec-agent",
+      "source": {
+        "source": "url",
+        "url": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools",
+      "description": "Powered by superpowers (github.com/obra/superpowers).",
+      "author": {
+        "name": "Screen-spec"
+      },
+      "homepage": "https://github.com/Phucnguyen113/screen-spec-agent",
+      "repository": "https://github.com/Phucnguyen113/screen-spec-agent"
+    }
+  ]
+}

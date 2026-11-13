@@ -1,0 +1,3 @@
+# The upstream .gitignore ignores every evals/ directory (its own harness lives elsewhere).
+# Ours is part of this kit.
+!evals/

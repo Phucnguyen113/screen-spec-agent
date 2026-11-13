@@ -1,0 +1,19 @@
+{
+  "name": "screen-spec-agent",
+  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques. Powered by superpowers (github.com/obra/superpowers).",
+  "version": "7.0.2",
+  "author": {
+    "name": "Screen-spec"
+  },
+  "homepage": "https://github.com/Phucnguyen113/screen-spec-agent",
+  "repository": "https://github.com/Phucnguyen113/screen-spec-agent",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows"
+  ]
+}
