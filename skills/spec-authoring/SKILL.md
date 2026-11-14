@@ -28,6 +28,8 @@ Changing code for a screen that already has a spec is not this skill: that is br
 
 Propose (or play back what they said): what the product is for, the actors, what is out of scope, the flows, and the screen list (code and name per screen). Mark what you decided yourself, with a short reason. One message, then wait. Write nothing to Screen-spec before their yes.
 
+A yes with changes ("ok, but add X") is not yet a yes to write. Work the change into the scope and read back what changed: screens, flows or actors added or removed, and anything you had to decide to make the change. Write after their yes to that. Only a pure wording change or rename is applied without another read-back.
+
 ### 3. Write the skeleton
 
 After the yes: `writeOverview` (overview, actors), the screens (`writeSpecItem` → `create_screen`, after `listScreens` to avoid duplicates), and `writeFlow` (flows and their steps). Report what was written in a few lines, with a pointer to each.

@@ -73,6 +73,8 @@ Spec: <what the spec says>. Code now: <new behavior>.
 
 Then make the code change. Afterwards, tell the developer what you wrote to Screen-spec and where.
 
+The change can make other parts of the screen's spec stale: acceptance criteria that test the old value or behavior, and designs that show it. Read them (`readScreenSpec` gives both) and, on a `draft` screen, update the criteria with `writeAC`; on a locked screen, or for a design, put them in the `noteDrift` comment. Then list them for the developer: which AC and designs were updated, and which still show the old behavior.
+
 **(2) Follow the spec, drop the request**
 
 Make the code match the spec and leave out the part that drifted. Write nothing to Screen-spec. Tell the developer what was left out.

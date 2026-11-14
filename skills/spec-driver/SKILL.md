@@ -23,13 +23,15 @@ If you do check the env var named by `keyEnv`, check only whether it is set, nev
 
 Otherwise warn once per session — "screen-spec not reachable — working without spec; plans will note 'not checked against spec'" — then skip every spec operation for the rest of the session (no retries). Never block work on the spec server. Never write a key value into any file.
 
+Exception: content the developer already confirmed is waiting to be written (they approved a read-back, in this session or an earlier one) → do not just skip it. Say the server is not reachable and what is waiting, then follow "Failures mid-session" steps 3 and 4.
+
 ## Failures mid-session
 
 The connection check passed but a later call fails (internal error, timeout, transport failure):
 
 1. A write that fails may still have landed. Re-read (`readScreenSpec` or `listScreens`) before calling again; never retry a write blindly.
 2. Retry a read or a re-checked write once. Still failing → stop the spec work and tell the developer which operations fail and what is waiting to be written (screen and items, not the content).
-3. Offer three choices and wait: (a) wait while they fix the server, then retry; (b) carry on with the content they already confirmed kept in a local pending file, to write to Screen-spec once it is back; (c) stop. Never pick (b) yourself: the spec must not quietly move into a local file.
+3. Offer three choices, labelled (a), (b), (c) exactly as here, and wait: (a) wait while they fix the server, then retry; (b) carry on with the content they already confirmed kept in a local pending file, to write to Screen-spec once it is back; (c) stop. Never pick (b) yourself: the spec must not quietly move into a local file.
 4. On (b): name the file (outside committed docs unless they ask), treat it as unwritten spec, retry the writes when the server responds, and list every pending write in each handoff until it lands. Code built from pending content is "not checked against spec".
 
 ## Feature detection (once per session)
