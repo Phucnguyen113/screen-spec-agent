@@ -7,7 +7,7 @@ description: Use when a screen-spec skill needs to read or write spec data, or b
 
 ## Overview
 
-Screen-spec skills (spec-grounding, spec-drift-guard, spec-audit, spec-design, screen-spec-setup) talk about **operations**, never raw tools. This skill is the one place that maps each operation to the backend. v1 has one driver: the Screen-spec MCP server (entry `spec-tool`), configured by `.screen-spec.json` at the repository root:
+Screen-spec skills (spec-grounding, spec-authoring, spec-drift-guard, spec-audit, spec-design, screen-spec-setup) talk about **operations**, never raw tools. This skill is the one place that maps each operation to the backend. v1 has one driver: the Screen-spec MCP server (entry `spec-tool`), configured by `.screen-spec.json` at the repository root:
 
 ```json
 { "version": 1, "server": "<url>", "keyEnv": "SPEC_TOOL_KEY", "projects": ["<id>", "..."] }
@@ -43,6 +43,10 @@ Read the server's tool list once. A missing tool disables only the operation tha
 | `listProjects` | `list_projects` | Projects the key's user can access, with each project's `id` and languages. |
 | `listScreens` | `list_screens`, `search_spec` | Call `list_screens` for every id in `projects`. Use `search_spec` to find a screen or rule by text. |
 | `readScreenSpec` | `get_screen_spec`, `get_design_image_annotated`, `list_acceptance_criteria` | Read live every time. Keep `contentFingerprint` for writes. |
+| `readOverview` | `get_project_overview` | What the product is for, its actors and its flows. Read before writing a project's spec. |
+| `writeOverview` | `update_project_overview`, `upsert_actor` | The overview text and the actors (the product's user types, not project members). Fill every configured language. |
+| `writeFlow` | `create_flow`, `update_flow`, `set_flow_steps` | Flows and their ordered steps. Never call `submit_flow_for_review`. |
+| `writeAC` | `create_acceptance_criteria`, `update_acceptance_criterion` | Acceptance criteria for a screen's rules. They land suggested; a person confirms them. |
 | `readFlows` | `get_flow`, `list_flows` | The flows a screen belongs to: `flows[].flowId` on `get_screen_spec`, then `get_flow({ flowId })` for the steps around it. `list_flows({ projectId })` lists a project's flows. |
 | `readSharedSpec` | `list_shared_specs`, `get_shared_spec` | `get_shared_spec({ sharedSpecId })` for an item's `sharedSpecId`; `list_shared_specs({ projectId })` lists a project's shared specs. Read-only here; shared specs are never edited (write rules). |
 | `screenState` | `get_screen_spec` (`screen.status`) | `draft` = writable. `review` or `approved` = comment-only. |
@@ -56,7 +60,7 @@ Read the server's tool list once. A missing tool disables only the operation tha
 ## Write rules
 
 - Only `writeSpecItem` on a `draft` screen. On `review`/`approved`, use `noteDrift` instead.
-- Never call `submit_screen_for_review`; submitting for review is the person's decision.
+- Never call `submit_screen_for_review` or `submit_flow_for_review`; submitting for review is the person's decision.
 - An item linked to a shared spec (it has `sharedSpecId`) is never edited — editing would spread to every screen using that rule. Use `noteDrift` on it.
 - New items are created unanchored. Put each into an existing section that fits; create a section only when none fits. A rule with no place on the design is business logic (`specScope: "screen"`). No screen yet → `create_screen`.
 - Fill every language the project is configured for, as the write tools require (check the tool schema / project). Never rewrite or re-translate text that already exists.
