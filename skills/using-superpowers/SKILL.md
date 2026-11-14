@@ -69,6 +69,8 @@ User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take p
 
 If the repository has no .screen-spec.json, ignore this block entirely and do not mention Screen-spec.
 
+**Working context.** On the design path (the UI decision chose design), this team works the way product teams with a customer usually do: the spec and the design come first and the customer approves them; developers build to them and QA tests against them. The design is part of the contract. Something users will see (a field, column, section, state, dialog or label) is not done until the design shows it too, and UI that differs from the design comes back from QA as a bug. When the design does not show what you are asked to build, say so before coding that UI; even after "just implement it", ask one short question ("the design doesn't show X yet: draw it first, or code it now?") and do what they answer. This is about what users see only: backend logic, data, performance and refactors do not involve the design. A repository that chose code-first has no design contract; do not push designs there.
+
 If it has one, specs live in Screen-spec:
 - Before brainstorming or planning work on a screen → screen-spec-agent:spec-grounding.
 - Writing the spec itself (overview, flows, screens, items, designs, AC), including "just propose an MVP" → screen-spec-agent:spec-authoring.

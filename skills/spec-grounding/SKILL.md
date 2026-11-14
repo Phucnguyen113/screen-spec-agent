@@ -51,6 +51,8 @@ A screen with none (and spec-driver's feature detection found `createDesign`):
 - The UI decision (brainstorming) is already made → follow it: design path → **screen-spec-agent:spec-design** before its UI is coded; code-first → nothing to do.
 - Not made yet → ask it now, as brainstorming words it, before any UI code for that screen. The developer decides; record the answer in the design doc (or the plan, outside brainstorming).
 
+A screen that already has a design, on the design path, where the change adds or changes something users see that its designs do not show (a field, column, section, state or dialog) → draw that part with **screen-spec-agent:spec-design** (a new design for it) and get it approved before its UI is coded. The developer asked to just implement it → ask one short question first (draw it first, or code it now?) and do what they answer. A change to something the approved design already shows differently is a drift: **screen-spec-agent:spec-drift-guard**.
+
 ## Red flags
 
 | Thought | Reality |
